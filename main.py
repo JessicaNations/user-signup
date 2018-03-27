@@ -1,4 +1,5 @@
-from flask import Flask, request
+from flask import Flask, request, redirect
+import cgi
 
 app = Flask(__name__)
 
@@ -16,6 +17,12 @@ page_header = """
     </head>
     <body>
     <h1>Signup</h1>
+"""
+page_footer = """
+    </body>
+</html>
+"""
+form = """
       <form method="port">
         <table>
           <tr>
@@ -52,12 +59,12 @@ page_header = """
         </table>
         <input type="submit">
       </form>
-     </body>
-    </html>
 """
 
 @app.route("/")
 def index():
-    return """<h1>Welcome,[username]!</h1>"""
+    content = page_header + "<p>" + form + "</p>" + page_footer 
+    greeting = """<h1>Welcome,""" + content + """!</h1>"""
+    return greeting
     
 app.run() 
