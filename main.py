@@ -64,7 +64,6 @@ form = """
 @app.route("/")
 def index():
     content = page_header + "<p>" + form + "</p>" + page_footer 
-    greeting = """<h1>Welcome,""" + content + """!</h1>"""
-    return greeting
+    return content
     
 app.run() 
