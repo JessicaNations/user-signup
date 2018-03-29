@@ -1,72 +1,64 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, url_for
 import cgi
 import os
-import jinja2
-
-template_dir = os.path.join(os.path.dirname(__file__), 'templates')
-jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
+import re
 
 app = Flask(__name__)
-
 app.config['DEBUG'] = True
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', title = "Sign Up")
 
-@app.route("/validate", methods=['POST'])
-def validate():
-    username = request.form['username']
-    password = request.form['password']
-    verify_password = request.form['verify_password']
-    email = request.form['email']
-    
-    error_check = False
-    username_err = ''
-    password_err = ''
-    verify_password_error = ''
-    email_err = ''
+@app.route("/signup", methods=['POST'])
+def signup():
 
-    if " " in username or username == '':
-        username_err = "Not a valid username."
-        error_check = True
-    elif len(username) < 3 or len(username) > 20:
-        username_err = "Username is not a valid length."
-        error_check = True
-    if ' ' in password or password == '':
-        password_err = "Not a valid password."
-        password = ''
-        verify_password = ''
-        error_check = True
+    username = request.form["username"]
+    password = request.form["password"]
+    verify = request.form["verify"]
+    email = request.form["email"]
+
+    username_error = ""
+    password_error = ""
+    verify_error = ""
+    email_error = ""
+
+    if username == "": # Validate Username
+        username_error = "Please enter a valid username."
+    elif len(username) <= 3 or len(username) > 20:
+        username_error = "Username must be between 3 and 20 characters long."
+        username = ""
+    elif " " in username:
+        username_error = "Your username cannot contain any spaces."
+        username = ""
+
+    if password == "": # Validate Password
+        password_error = "Please enter a valid password."
     elif len(password) < 3 or len(password) > 20:
-        password_err = "Password is not a valid length."
-        password = ''
-        verify_password = ''
-        error_check = True
-    if password != verify_password:
-        verify_password_error = "Passwords do not match."
-        password = ''
-        verify_password = ''
-        error_check = True
-    elif verify_password == '':
-        verify_password_error = "Passwords do not match."
-        error_check = True
-    
-    if email != '':
-        if email.count('@') != 1:
-            email_err = "Not a valid email address."
-            error_check = True
-        if email.count('.') != 1:
-            email_err = "Not a valid email address."
-            error_check = True
-        if " " in email:
-            email_err = "Not a valid email address."
-            error_check = True
-    if error_check == True:
-        return render_template('index.html', username_err=username_err,
-            password_err=password_err, verify_password_error=verify_password_error,
-            email_err=email_err, username=username, password=password,
-            verify_password=verify_password, email=email)
+        password_error = "Password must be between 3 and 20 characters long."
+    elif " " in password:
+        password_error = "Your password cannot contain any spaces."
+
+    if verify == "" or verify != password: # Verify Password
+        verify_error = "Passwords do not match. Please try again."
+        verify = ""
+
+    if email != "": # Validate Email
+        # Used regex for complete email validation.
+        if not re.match(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
+                email_error = "Not a valid email address."
+
+    if not username_error and not password_error and not verify_error and not email_error:
+        return render_template('welcome.html', username = username)
     else:
-        return render_template('welcome_page.html', username=username)
+        return render_template(
+            'index.html',
+            username = username,
+            username_error = username_error,
+            password_error = password_error,
+            verify_error = verify_error,
+            email = email,
+            email_error = email_error
+            )
+
 app.run()
